@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Laundry Management</title>
+  <script src="app.js" defer></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="p-6">
+    <nav class="bg-blue-600 text-white p-4 shadow-md flex justify-between items-center">
+        <div class="text-xl font-bold">Laundry App</div>
+        <div class="space-x-4">
+          <a href="index.html" class="hover:underline">Home</a>
+          <a href="order.html" class="hover:underline">Order</a>
+          <a href="track.html" class="hover:underline">Track Order</a>
+          <a href="payment.html" class="hover:underline">Payment</a>
+          <a href="employee.html" class="hover:underline">Contact Employee</a>
+        </div>
+      </nav>
+      
+    <h2 class="text-2xl font-bold mb-4">Track Your Order</h2>
+    <input id="trackId" placeholder="Enter Order ID" class="p-2 border w-full" />
+    <button onclick="trackOrder()" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Track</button>
+    <p id="trackResult" class="mt-4 text-lg text-blue-700"></p>
+  </body>
+  
