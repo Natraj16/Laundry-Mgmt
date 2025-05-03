@@ -41,13 +41,23 @@ if (document.getElementById('orderForm')) {
       service_id: serviceInput.value,
     };
 
-    const res = await fetch('http://localhost:3000/api/order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+    try {
+      const res = await fetch('http://localhost:3000/api/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
 
-    const result = await res.json();
-    document.getElementById('orderResult').textContent = `Order Placed! Order ID: ${result.order_id}`;
+      const result = await res.json();
+
+      if (res.ok) {
+        document.getElementById('orderResult').textContent = `Order Placed! Order ID: ${result.order_id}`;
+      } else {
+        document.getElementById('orderResult').textContent = `Error: ${result.error}`;
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      document.getElementById('orderResult').textContent = 'Failed to place order. Try again later.';
+    }
   });
 }
