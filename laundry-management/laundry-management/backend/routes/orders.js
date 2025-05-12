@@ -1,59 +1,67 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const db = require('../db'); // your MySQL connection
+const crypto = require('crypto');
 
-// Helper to generate random IDs
+// Generate unique IDs
 const generateId = (prefix = '', length = 6) =>
-  prefix + Math.random().toString(36).substr(2, length).toUpperCase();
+  prefix + crypto.randomBytes(length).toString('hex').slice(0, length).toUpperCase();
 
-// Create new order and customer
+// POST /api/order
 router.post('/', (req, res) => {
   const { name, address, contact, service_id } = req.body;
+
+  // Validation
+  if (!name || !address || !contact || !service_id) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
   const customer_id = generateId('CUST_');
   const order_id = generateId('ORD_');
 
-  // 1. Insert new customer
-  const insertCustomerQuery = 'INSERT INTO customers (customer_id, name, address, contact) VALUES (?, ?, ?, ?)';
-  db.query(insertCustomerQuery, [customer_id, name, address, contact], (err) => {
-    if (err) return res.status(500).json({ error: 'Customer creation failed', details: err.message });
+  // Step 1: Insert customer
+  const insertCustomer = `INSERT INTO customers (customer_id, name, address, contact)
+                          VALUES (?, ?, ?, ?)`;
+  db.query(insertCustomer, [customer_id, name, address, contact], (err) => {
+    if (err) {
+      console.error('Customer insert failed:', err);
+      return res.status(500).json({ error: 'Customer insert failed', details: err.message });
+    }
 
-    // 2. Get service price
-    db.query('SELECT price FROM services WHERE service_id = ?', [service_id], (err, serviceRes) => {
-      if (err || serviceRes.length === 0)
+    // Step 2: Get service price
+    const serviceQuery = `SELECT price FROM services WHERE service_id = ?`;
+    db.query(serviceQuery, [service_id], (err, serviceResults) => {
+      if (err || serviceResults.length === 0) {
+        console.error('Service lookup failed:', err);
         return res.status(404).json({ error: 'Service not found' });
+      }
 
-      const total_amount = serviceRes[0].price;
+      const total_amount = serviceResults[0].price;
 
-      // 3. Get random employee
-      db.query('SELECT employee_id FROM employees', (err, empRes) => {
-        if (err || empRes.length === 0)
-          return res.status(500).json({ error: 'No employees available' });
+      // Step 3: Pick random employee
+      const empQuery = `SELECT employee_id FROM employees`;
+      db.query(empQuery, (err, empResults) => {
+        if (err || empResults.length === 0) {
+          console.error('No employee available:', err);
+          return res.status(500).json({ error: 'No employee found' });
+        }
 
-        const randomEmp = empRes[Math.floor(Math.random() * empRes.length)].employee_id;
+        const randomEmp = empResults[Math.floor(Math.random() * empResults.length)].employee_id;
 
-        // 4. Insert order
-        const insertOrderQuery = `
-          INSERT INTO orders (order_id, customer_id, service_id, total_amount, order_date, status, employee_id)
-          VALUES (?, ?, ?, ?, NOW(), 'Pending', ?)
-        `;
+        // Step 4: Insert order
+        const insertOrder = `INSERT INTO orders (order_id, customer_id, service_id, total_amount, order_date, status, employee_id)
+                             VALUES (?, ?, ?, ?, NOW(), 'Pending', ?)`;
 
-        db.query(insertOrderQuery, [order_id, customer_id, service_id, total_amount, randomEmp], (err) => {
-          if (err) return res.status(500).json({ error: 'Order creation failed', details: err.message });
+        db.query(insertOrder, [order_id, customer_id, service_id, total_amount, randomEmp], (err) => {
+          if (err) {
+            console.error('Order insert failed:', err);
+            return res.status(500).json({ error: 'Order insert failed', details: err.message });
+          }
 
-          res.json({ order_id, total_amount });
+          res.json({ message: 'Order placed successfully', order_id, total_amount });
         });
       });
     });
-  });
-});
-
-// Track order by ID
-router.get('/:order_id', (req, res) => {
-  const { order_id } = req.params;
-  db.query('SELECT * FROM orders WHERE order_id = ?', [order_id], (err, result) => {
-    if (err) return res.status(500).json({ error: err.message });
-    if (result.length === 0) return res.status(404).json({ error: 'Order not found' });
-    res.json(result[0]);
   });
 });
 
