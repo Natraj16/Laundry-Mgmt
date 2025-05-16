@@ -35,7 +35,7 @@ CREATE TABLE orders (
 );
 
 CREATE TABLE payments (
-  payment_id VARCHAR(20) PRIMARY KEY,
+  payment_id INT PRIMARY KEY AUTO_INCREMENT,
   order_id VARCHAR(20),
   total_amount DECIMAL(10,2),
   method VARCHAR(50),

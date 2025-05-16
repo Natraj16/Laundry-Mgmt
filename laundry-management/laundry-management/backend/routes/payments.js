@@ -27,7 +27,7 @@ router.post('/', (req, res) => {
 
       const amount = orderResult[0].total_amount;
       db.query(
-        'INSERT INTO payments (order_id, amount, method, status) VALUES (?, ?, ?, ?)',
+        'INSERT INTO payments (order_id, total_amount, method, status) VALUES (?, ?, ?, ?)',
         [order_id, amount, method, 'Done'],
         (err, result) => {
           if (err) return res.status(500).json({ error: err.message });

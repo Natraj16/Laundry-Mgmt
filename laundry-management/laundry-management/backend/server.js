@@ -7,11 +7,11 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-app.use('/api/customers', require('./routes/customers'));
-app.use('/api/orders', require('./routes/orders'));
-app.use('/api/payments', require('./routes/payments'));
-app.use('/api/employees', require('./routes/employees'));
-app.use('/api/services', require('./routes/services'));
+app.use('/api/customers', require('./routes/customers.js'));
+app.use('/api/orders', require('./routes/orders.js'));
+app.use('/api/payments', require('./routes/payments.js'));
+app.use('/api/employees', require('./routes/employees.js'));
+app.use('/api/services', require('./routes/services.js'));
 
 app.listen(3000, () => {
   console.log('Server running on port 3000');
