@@ -63,12 +63,27 @@ router.post('/', (req, res) => {
 router.get('/:id', (req, res) => {
   const orderId = req.params.id;
   const query = `
-    SELECT o.order_id, o.status, o.order_date, o.total_amount, c.name AS customer_name, s.service_name
-    FROM orders o
-    JOIN customers c ON o.customer_id = c.customer_id
-    JOIN services s ON o.service_id = s.service_id
-    WHERE o.order_id = ?
-  `;
+  SELECT 
+  o.order_id, 
+  o.service_id, 
+  o.status, 
+  o.order_date, 
+  o.total_amount, 
+  o.employee_id, 
+  e.name AS employee_name,
+  e.contact AS employee_contact,
+  e.service AS employee_service,
+  c.customer_id, 
+  c.name AS customer_name, 
+  s.service_name
+FROM orders o
+JOIN customers c ON o.customer_id = c.customer_id
+JOIN services s ON o.service_id = s.service_id
+LEFT JOIN employees e ON o.employee_id = e.employee_id
+WHERE o.order_id = ?
+
+`;
+
 
   db.query(query, [orderId], (err, results) => {
     if (err) {

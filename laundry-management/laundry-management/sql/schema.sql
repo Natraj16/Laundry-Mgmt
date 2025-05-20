@@ -42,3 +42,76 @@ CREATE TABLE payments (
   status VARCHAR(20),
   FOREIGN KEY (order_id) REFERENCES orders(order_id)
 );
+
+-------------------------------------------------------------------------------------
+Triggers
+
+
+CREATE TABLE IF NOT EXISTS customer_log (
+  log_id INT AUTO_INCREMENT PRIMARY KEY,
+  customer_id VARCHAR(20),
+  action VARCHAR(100),
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+DELIMITER //
+
+CREATE TRIGGER after_customer_insert
+AFTER INSERT ON customers
+FOR EACH ROW
+BEGIN
+  INSERT INTO customer_log (customer_id, action)
+  VALUES (NEW.customer_id, 'Customer Registered');
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER before_order_insert
+BEFORE INSERT ON orders
+FOR EACH ROW
+BEGIN
+  IF NEW.status IS NULL THEN
+    SET NEW.status = 'Pending';
+  END IF;
+
+  IF NEW.order_date IS NULL THEN
+    SET NEW.order_date = NOW();
+  END IF;
+END //
+
+DELIMITER ;
+
+
+DELIMITER //
+
+CREATE TRIGGER after_payment_insert
+AFTER INSERT ON payments
+FOR EACH ROW
+BEGIN
+  UPDATE orders
+  SET status = 'Paid'
+  WHERE order_id = NEW.order_id;
+END //
+
+DELIMITER ;
+
+
+CREATE TABLE IF NOT EXISTS employee_assignment_log (
+  log_id INT AUTO_INCREMENT PRIMARY KEY,
+  employee_id VARCHAR(20),
+  order_id VARCHAR(20),
+  assigned_on DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+DELIMITER //
+
+CREATE TRIGGER after_order_assignment
+AFTER INSERT ON orders
+FOR EACH ROW
+BEGIN
+  INSERT INTO employee_assignment_log (employee_id, order_id)
+  VALUES (NEW.employee_id, NEW.order_id);
+END //
+
+DELIMITER ;
